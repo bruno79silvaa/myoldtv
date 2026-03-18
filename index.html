@@ -720,11 +720,18 @@
   function seek(dir) {
     spinChButton();
     if (!isPowered || !player || !playerReady) return;
+    // Flash static, seek, then restore video
+    ytWrapper.style.display = 'none';
+    startStatic();
     try {
       const current  = player.getCurrentTime();
       const duration = player.getDuration();
       player.seekTo(Math.max(0, Math.min(duration, current + dir * SEEK_STEP)), true);
     } catch(_) {}
+    setTimeout(() => {
+      stopStatic();
+      ytWrapper.style.display = 'block';
+    }, 400);
   }
 
   // ── VOLUME ────────────────────────────────────────────────────────────────
