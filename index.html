@@ -609,6 +609,22 @@
     return src;
   }
 
+  function playChannelStaticSound() {
+    const actx = getAudio();
+    const dur = 0.4;
+    const noise  = makeNoise(actx, dur);
+    const filter = actx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 1800;
+    filter.Q.value = 0.5;
+    const gain = actx.createGain();
+    gain.gain.setValueAtTime(0.6,   actx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.5,  actx.currentTime + 0.1);
+    gain.gain.linearRampToValueAtTime(0,    actx.currentTime + dur);
+    noise.connect(filter); filter.connect(gain); gain.connect(actx.destination);
+    noise.start(); noise.stop(actx.currentTime + dur);
+  }
+
   function playTurnOnSound() {
     const actx = getAudio();
     const dur = 1.1;
@@ -720,9 +736,10 @@
   function seek(dir) {
     spinChButton();
     if (!isPowered || !player || !playerReady) return;
-    // Flash static, seek, then restore video
+    // Flash static + sound, seek, then restore video
     ytWrapper.style.display = 'none';
     startStatic();
+    playChannelStaticSound();
     try {
       const current  = player.getCurrentTime();
       const duration = player.getDuration();
