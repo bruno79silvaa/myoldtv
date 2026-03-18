@@ -557,7 +557,6 @@
         iv_load_policy: 3,
         modestbranding: 1,
         playsinline: 1,
-        mute: 1,
       },
       events: {
         onReady: function (e) {
@@ -688,13 +687,12 @@
     powerHint.style.display = 'none';
     playTurnOnSound();
     startStatic();
-    setTimeout(() => {
-      if (window.YT && window.YT.Player) {
-        initPlayer();
-      } else {
-        window.onYouTubeIframeAPIReady = initPlayer;
-      }
-    }, 1100);
+    // Init player immediately within the user gesture — required for sound on mobile
+    if (window.YT && window.YT.Player) {
+      initPlayer();
+    } else {
+      window.onYouTubeIframeAPIReady = initPlayer;
+    }
   }
 
   function powerOff() {
