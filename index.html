@@ -378,6 +378,23 @@
     background: linear-gradient(90deg, transparent, rgba(255,200,120,0.3) 20%, rgba(255,200,120,0.5) 50%, rgba(255,200,120,0.3) 80%, transparent);
   }
 
+  /* Unmute prompt (mobile) */
+  #unmute-prompt {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'VT323', monospace;
+    font-size: 20px;
+    color: rgba(255,220,80,0.9);
+    letter-spacing: 2px;
+    z-index: 100;
+    pointer-events: none;
+    animation: hintPulse 1.2s ease-in-out infinite;
+    white-space: nowrap;
+    display: none;
+  }
+
   /* Responsive */
   @media (max-width: 600px) {
     #keyboard-hints { display: none; }
@@ -396,6 +413,7 @@
 </div>
 
 <div id="power-hint">▶ CLICK TV OR PRESS SPACE TO START</div>
+<div id="unmute-prompt">▶ TAP ANYWHERE TO UNMUTE</div>
 
 <div class="scene">
   <div class="tv-container" id="tv-container">
@@ -557,6 +575,7 @@
         iv_load_policy: 3,
         modestbranding: 1,
         playsinline: 1,
+        mute: isMobile() ? 1 : 0,
       },
       events: {
         onReady: function (e) {
@@ -575,6 +594,8 @@
             } catch(_) {}
           }, 1200);
           stopStatic();
+          // On mobile: show tap-to-unmute prompt, unmute on first interaction
+          if (isMobile()) showUnmutePrompt(e.target);
         },
         onError: function () {
           startStatic();
@@ -786,9 +807,31 @@
     }
   });
 
+  // ── MOBILE HELPERS ────────────────────────────────────────────────────────
+  function isMobile() {
+    return /Mobi|Android|iPhone|iPad|iPod|Touch/i.test(navigator.userAgent) ||
+           ('ontouchstart' in window);
+  }
+
+  function showUnmutePrompt(ytPlayer) {
+    const prompt = document.getElementById('unmute-prompt');
+    prompt.style.display = 'block';
+    function unmute() {
+      try { ytPlayer.unMute(); } catch(_) {}
+      prompt.style.display = 'none';
+      document.removeEventListener('touchstart', unmute);
+      document.removeEventListener('click', unmute);
+    }
+    document.addEventListener('touchstart', unmute, { once: true });
+    document.addEventListener('click',      unmute, { once: true });
+  }
+
   // ── INIT ──────────────────────────────────────────────────────────────────
   updateVolBars();
   canvas.style.display = 'none';
+
+  // Auto power-on for mobile (no hover/keyboard available)
+  if (isMobile()) powerOn();
 
 })();
 </script>
